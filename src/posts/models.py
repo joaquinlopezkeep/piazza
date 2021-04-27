@@ -3,11 +3,12 @@ from django.utils.timezone import now
 from datetime import timedelta
 from multiselectfield import MultiSelectField
 
+"""
+Model Class For Posts
+"""
+
 
 class Post(models.Model):
-    """
-    Model Class For Posts
-    """
     POLITICS, HEALTH, TECHNOLOGY, SPORT = 'P', 'H', 'T', 'S'
     LIVE, EXPIRED = 'L', 'E'
     TOPICS = [
@@ -26,7 +27,7 @@ class Post(models.Model):
     Model Fields
     """
     post_title = models.CharField(max_length=100)
-
+    # MultiselectField to allow user to have many topics for a single post
     post_topic = MultiSelectField(
         choices=TOPICS,
         max_choices=4,
@@ -35,7 +36,7 @@ class Post(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
 
     post_message = models.TextField()
-
+    # expiration time is current time + 5 minutes
     post_expiration = models.DateTimeField(
         default=now() + timedelta(minutes=5))
 
@@ -44,10 +45,16 @@ class Post(models.Model):
         default=LIVE,
         max_length=1)
 
-    post_owner = models.ForeignKey(
+    owner = models.ForeignKey(
         'auth.User',
         related_name='posts',
         on_delete=models.CASCADE)
+
+    """
+    model function checks if the post is expired
+    and changes the post_status accordingly. 
+    """
+    # Model function to check if post is expired and set the status accordingly.
 
     def post_expired(self):
         time = now()
@@ -58,14 +65,21 @@ class Post(models.Model):
         return False
 
 
+"""
+Model class for LikeDislike interactions
+"""
+
+
 class LikeDislike(models.Model):
-    UNSET, LIKE, DISLIKE, = 'U', 'L', 'D'
+    LIKE, DISLIKE, = 'L', 'D'
     INTERACTION = [
-        (UNSET, 'Unset'),
         (LIKE, 'Like'),
         (DISLIKE, 'Dislike')
     ]
 
+    """
+    Model Fields
+    """
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
@@ -76,9 +90,13 @@ class LikeDislike(models.Model):
         related_name='likes')
     interaction = models.CharField(
         choices=INTERACTION,
-        default=UNSET,
         max_length=1)
     created_on = models.DateTimeField(auto_now_add=True)
+
+
+"""
+Model class for Comment interaction
+"""
 
 
 class Comment(models.Model):
